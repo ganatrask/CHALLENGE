@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHALLENGE Game - Refugee Education Policy Simulation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Introduction Screen -->
+        <div id="intro-screen">
+            <div class="header">
+                <h1 class="text-center">CHALLENGE Game</h1>
+                <h3 class="text-center">Creating Holistic Approaches for Learning, Liberty, and Equity in New Global Education</h3>
+                <p class="text-center mt-3">A Refugee Education Policy Simulation</p>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Welcome to the Republic of Bean</h4>
+                    <p>You are an honorable member of parliament in the Republic of Bean, a unique nation situated in a distant realm. While the country is not wealthy, its citizens enjoy free access to education, healthcare, and various public services.</p>
+                    <p>The Republic of Bean has recently received two million refugees (14% of the population) from neighboring Orangenya, which is experiencing civil conflict. As a member of parliament, you must work with your colleagues to develop education policies for these refugees.</p>
+                    <p>You will be joined by four AI parliament members, each with their own backgrounds, values, and political stances.</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>Game Rules</h4>
+                    <ol>
+                        <li><strong>Budget Limit:</strong> Your team has a total budget of 14 units to allocate across all policy decisions.</li>
+                        <li><strong>Option Costs:</strong> Each policy option has a specific cost: Option 1 costs 1 unit, Option 2 costs 2 units, Option 3 costs 3 units.</li>
+                        <li><strong>Budget Management:</strong> You must ensure that the total cost of your chosen policies does not exceed the 14-unit budget.</li>
+                        <li><strong>Policy Selection Variety:</strong> You cannot select all your policies from just one option across the seven policy areas.</li>
+                        <li><strong>Strategic Decision-Making:</strong> Consider the advantages and disadvantages of each policy option to create an effective and inclusive refugee education package.</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <button id="start-game-btn" class="btn btn-primary btn-lg d-block mx-auto">Start Game</button>
+        </div>
+        
+        <!-- Game Phases -->
+        <div id="game-screen" style="display: none;">
+            <div class="header">
+                <h2 class="text-center">Republic of Bean - Refugee Education Policy</h2>
+                <div class="phase-indicator mt-3">
+                    <div id="phase-individual" class="phase-step active">Individual Decisions</div>
+                    <div id="phase-group" class="phase-step">Group Discussion</div>
+                    <div id="phase-reflection" class="phase-step">Reflection</div>
+                </div>
+            </div>
+            
+            <!-- Budget Tracker -->
+            <div class="budget-tracker">
+                <h4>Budget Tracker</h4>
+                <div class="budget-bar">
+                    <div id="budget-used" class="budget-used" style="width: 0%;"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span>0 units</span>
+                    <span id="budget-display">0/14 units used</span>
+                    <span>14 units</span>
+                </div>
+                <div id="budget-feedback" class="mt-2 text-muted"></div>
+            </div>
+            
+            <!-- AI Agents -->
+            <div id="agents-container" class="row mb-4" style="display: none;">
+                <h4>Your Parliament Colleagues</h4>
+                <!-- Agent cards will be inserted here dynamically -->
+            </div>
+            
+            <!-- Individual Phase -->
+            <div id="individual-phase">
+                <h3>Individual Decision-Making Phase</h3>
+                <p>As a member of parliament, you need to decide on your policy preferences across seven key areas. Remember, you have a total budget of 14 units.</p>
+                
+                <div id="policy-areas-container">
+                    <!-- Policy areas will be inserted here dynamically -->
+                </div>
+                
+                <button id="complete-individual-phase" class="btn btn-primary mt-3" disabled>Proceed to Group Discussion</button>
+            </div>
+            
+            <!-- Group Discussion Phase -->
+            <div id="group-phase" style="display: none;">
+                <h3>Group Discussion Phase</h3>
+                <p>Now, discuss with your parliament colleagues to reach a consensus on each policy area.</p>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h4 id="current-topic">Current Topic: Access to Education</h4>
+                        
+                        <div class="discussion-log" id="discussion-log">
+                            <!-- Discussion messages will appear here -->
+                        </div>
+                        
+                        <div class="human-input">
+                            <h5>Your Response</h5>
+                            <div class="mb-3">
+                                <label for="human-stance" class="form-label">Your preferred option:</label>
+                                <select id="human-stance" class="form-select">
+                                    <option value="1">Option 1 (1 unit)</option>
+                                    <option value="2">Option 2 (2 units)</option>
+                                    <option value="3">Option 3 (3 units)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="human-argument" class="form-label">Your argument:</label>
+                                <textarea id="human-argument" class="form-control" rows="3" placeholder="Enter your argument here..."></textarea>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button id="voice-input-btn" class="microphone-button">
+                                    <i class="bi bi-mic"></i>
+                                </button>
+                                <button id="submit-argument-btn" class="btn btn-primary">Submit Argument</button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5>Finalize Decision</h5>
+                            <p>After discussion, select the final policy option for this area:</p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-danger finalize-option" data-option="1">Option 1 (1 unit)</button>
+                                <button class="btn btn-outline-warning finalize-option" data-option="2">Option 2 (2 units)</button>
+                                <button class="btn btn-outline-success finalize-option" data-option="3">Option 3 (3 units)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reflection Phase -->
+            <div id="reflection-phase" style="display: none;">
+                <h3>Reflection Phase</h3>
+                <p>Now that all policy decisions have been made, it's time to reflect on the process and outcomes.</p>
+                
+                <!-- Policy Summary -->
+                <div class="result-card">
+                    <h4>Final Policy Package</h4>
+                    <table class="policy-table">
+                        <thead>
+                            <tr>
+                                <th>Policy Area</th>
+                                <th>Selected Option</th>
+                                <th>Budget Used</th>
+                            </tr>
+                        </thead>
+                        <tbody id="policy-summary-table">
+                            <!-- Policy summary will be inserted here -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2"><strong>Total Budget Used:</strong></td>
+                                <td id="total-budget-used"><strong>0 units</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <!-- Policy Analysis -->
+                <div class="result-card">
+                    <h4>Policy Analysis</h4>
+                    
+                    <div class="mb-4">
+                        <h5>Equity Score</h5>
+                        <div class="mb-4">
+                            <h5>Equity Score</h5>
+                            <div class="d-flex justify-content-between">
+                                <span>Low</span>
+                                <span>High</span>
+                            </div>
+                            <div class="score-indicator">
+                                <div id="equity-score" class="score-value" style="width: 0%"></div>
+                            </div>
+                            <p id="equity-analysis"></p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5>Justice Score</h5>
+                            <div class="d-flex justify-content-between">
+                                <span>Low</span>
+                                <span>High</span>
+                            </div>
+                            <div class="score-indicator">
+                                <div id="justice-score" class="score-value" style="width: 0%"></div>
+                            </div>
+                            <p id="justice-analysis"></p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5>Coherence Score</h5>
+                            <div class="d-flex justify-content-between">
+                                <span>Low</span>
+                                <span>High</span>
+                            </div>
+                            <div class="score-indicator">
+                                <div id="coherence-score" class="score-value" style="width: 0%"></div>
+                            </div>
+                            <p id="coherence-analysis"></p>
+                        </div>
+                        
+                        <div>
+                            <h5>Who Benefits?</h5>
+                            <p id="benefit-analysis"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Agent Reflections -->
+                    <div class="result-card">
+                        <h4>Colleague Reflections</h4>
+                        <div id="agent-reflections-container">
+                            <!-- Agent reflections will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Reflection Questions -->
+                    <div class="result-card">
+                        <h4>Reflection Questions</h4>
+                        <p>Consider these questions as you reflect on your experience:</p>
+                        <div id="reflection-questions-container">
+                            <!-- Reflection questions will be inserted here -->
+                        </div>
+                        
+                        <div class="mb-3 mt-4">
+                            <label for="reflection-response" class="form-label">Your Reflection:</label>
+                            <textarea id="reflection-response" class="form-control" rows="5" placeholder="Share your thoughts on the experience..."></textarea>
+                        </div>
+                        <button id="submit-reflection-btn" class="btn btn-primary">Submit Reflection</button>
+                    </div>
+                    
+                    <button id="finish-game-btn" class="btn btn-success mt-4">Complete Game</button>
+                </div>
+            </div>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+        
+        <!-- Debug Script to Test Button Functionality -->
+        <script>
+            // This script helps diagnose issues with button clicks
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log("Debug script loaded");
+                const startBtn = document.getElementById('start-game-btn');
+                
+                if (startBtn) {
+                    console.log("Start button found by debug script");
+                    // Add a second event listener just to verify
+                    startBtn.addEventListener('click', function() {
+                        console.log("Start button clicked - debug script");
+                    });
+                } else {
+                    console.error("Start button NOT found by debug script!");
+                }
+            });
+        </script>
+    </body>
+    </html>
